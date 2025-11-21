@@ -109,26 +109,26 @@ const mockDidReusage = [
   }
 ];
 
-// Mock chart data for Total Credentials Issued (Bar Chart)
-const credentialsIssuedData = [
-  { date: '10/24', value: 8500000 },
-  { date: '10/28', value: 8700000 },
-  { date: '11/01', value: 8900000 },
-  { date: '11/05', value: 9000000 },
-  { date: '11/09', value: 9100000 },
-  { date: '11/13', value: 9200000 },
-  { date: '11/17', value: 9298876 },
+// Mock chart data for Total DID Issued (Bar Chart)
+const didIssuedData = [
+  { date: '10/24', value: 1200 },
+  { date: '10/28', value: 1250 },
+  { date: '11/01', value: 1300 },
+  { date: '11/05', value: 1280 },
+  { date: '11/09', value: 1320 },
+  { date: '11/13', value: 1340 },
+  { date: '11/17', value: 1234 },
 ];
 
-// Mock chart data for Total Transactions (Area Chart)
-const transactionsData = [
-  { date: '10/24', value: 150000 },
-  { date: '10/28', value: 165000 },
-  { date: '11/01', value: 180000 },
-  { date: '11/05', value: 175000 },
-  { date: '11/09', value: 190000 },
-  { date: '11/13', value: 185000 },
-  { date: '11/17', value: 181162 },
+// Mock chart data for DID Reused (Area Chart)
+const didReusedData = [
+  { date: '10/24', value: 450 },
+  { date: '10/28', value: 480 },
+  { date: '11/01', value: 520 },
+  { date: '11/05', value: 510 },
+  { date: '11/09', value: 550 },
+  { date: '11/13', value: 540 },
+  { date: '11/17', value: 568 },
 ];
 
 // Format address to show first 6 and last 4 characters
@@ -310,14 +310,14 @@ export default function ExplorerPage() {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-          {/* Total Credentials Issued - Bar Chart */}
+          {/* Total DID Issued - Bar Chart */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 p-6 shadow-[0.1em_0.1em]">
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-charcoal-text mb-1">Total Credentials Issued</h3>
-              <p className="text-xs text-charcoal-text/60">Shows total VCs issued based on verified on-chain identity actions.</p>
+              <h3 className="text-lg font-bold text-charcoal-text mb-1">Total DID Issued</h3>
+              <p className="text-xs text-charcoal-text/60">Shows total DIDs issued based on verified on-chain identity actions.</p>
             </div>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={credentialsIssuedData}>
+              <BarChart data={didIssuedData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#7C3AED" opacity={0.1} />
                 <XAxis 
                   dataKey="date" 
@@ -329,11 +329,10 @@ export default function ExplorerPage() {
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {credentialsIssuedData.map((entry, index) => (
+                  {didIssuedData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill="#7C3AED" />
                   ))}
                 </Bar>
@@ -341,19 +340,19 @@ export default function ExplorerPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Total Transactions - Area Chart */}
+          {/* DID Reused - Area Chart */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 p-6 shadow-[0.1em_0.1em]">
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-charcoal-text mb-1">Total Transactions</h3>
+              <h3 className="text-lg font-bold text-charcoal-text mb-1">DID Reused</h3>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-charcoal-text">17,042,606</p>
-                <p className="text-xs text-charcoal-text/60">Daily Transaction (Avg): 181,162 txns</p>
+                <p className="text-2xl font-bold text-charcoal-text">568</p>
+                <p className="text-xs text-charcoal-text/60">Daily Reusage (Avg): 81 reuses</p>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={transactionsData}>
+              <AreaChart data={didReusedData}>
                 <defs>
-                  <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorDidReused" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8}/>
                     <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1}/>
                   </linearGradient>
@@ -369,7 +368,6 @@ export default function ExplorerPage() {
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Area 
@@ -378,7 +376,7 @@ export default function ExplorerPage() {
                   stroke="#14B8A6" 
                   strokeWidth={3}
                   fillOpacity={1} 
-                  fill="url(#colorTransactions)" 
+                  fill="url(#colorDidReused)" 
                 />
               </AreaChart>
             </ResponsiveContainer>

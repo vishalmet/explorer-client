@@ -13,10 +13,50 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SuiVerify Explorer - Digital Identity Explorer",
-  description: "Explore SBT claims and DID reusage on the SuiVerify platform",
+  title: "SuiVerify - Digital Identity Infrastructure",
+  description: "One Identity Layer to Bridge Old and New Internets.",
+  keywords: ["digital identity", "blockchain", "verification", "Aadhaar", "DID", "NFT", "Sui", "KYC", "government"],
+  authors: [{ name: "SuiVerify" }],
+  robots: "index, follow",
+  themeColor: "#00BFFF",
+  viewport: "width=device-width, initial-scale=1.0",
+  icons: {
+    icon: "/head_logo.png",
+    apple: "/head_logo.png",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://explorer.suiverify.xyz/",
+    title: "SuiVerify - Digital Identity Infrastructure",
+    description: "One Identity Layer to Bridge Old and New Internets.",
+    siteName: "SuiVerify",
+    locale: "en_US",
+    images: [
+      {
+        url: "https://suiverify.xyz/cover.png",
+        width: 1200,
+        height: 630,
+        alt: "SuiVerify - Digital Identity Infrastructure",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@suiverify",
+    creator: "@suiver1fy",
+    title: "SuiVerify - Digital Identity Infrastructure",
+    description: "One Identity Layer to Bridge Old and New Internets.",
+    images: ["https://suiverify.xyz/head_logo.png"],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SuiVerify",
+  },
+  other: {
+    "msapplication-TileColor": "#00BFFF",
+  },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
