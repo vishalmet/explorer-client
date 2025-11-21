@@ -196,7 +196,7 @@ export default function ExplorerPage() {
       ></div>
 
       {/* Professional Header with SuiVerify Theme */}
-      <header className="relative z-50 bg-white/90 backdrop-blur-md border-b border-primary/20 sticky top-0 shadow-sm">
+      <header className="relative z-50 bg-transparent backdrop-blur-md shadow-md top-0 ">
         <div className="max-w-[1920px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between gap-6">
             {/* Logo */}
@@ -213,27 +213,20 @@ export default function ExplorerPage() {
 
             {/* Search Bar - Prominent and Professional */}
             <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by Txn Hash / Block / Address / DID"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-charcoal-text placeholder-charcoal-text/40 transition-all shadow-[0.1em_0.1em]"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Search by Txn Hash / Block / Address / DID"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-charcoal-text placeholder-charcoal-text/40 transition-all shadow-[0.1em_0.1em]"
+              />
             </div>
 
             {/* Network/Info Section */}
             <div className="flex items-center gap-4 flex-shrink-0">
               <div className="text-right">
                 <div className="text-xs text-charcoal-text/60 uppercase tracking-wide font-semibold">Network</div>
-                <div className="text-sm font-bold text-charcoal-text">Mainnet</div>
+                <div className="text-sm font-bold text-charcoal-text">Testnet</div>
               </div>
             </div>
           </div>
