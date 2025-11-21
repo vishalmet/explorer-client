@@ -121,6 +121,11 @@ const formatDate = (timestamp: number) => {
   });
 };
 
+// Copy to clipboard function
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
+};
+
 export default function SbtClaimsPage() {
   const router = useRouter();
 
@@ -145,88 +150,145 @@ export default function SbtClaimsPage() {
         }}
       ></div>
 
-      {/* Main Content */}
-      <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Go Back Button */}
-          <div className="mb-8">
-            <Link
-              href="/"
-              className="inline-flex items-center px-6 py-3 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl font-bold text-sm text-charcoal-text transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em]"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Go Back
-            </Link>
-          </div>
-
-          {/* Page Title */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2 text-charcoal-text">SBT Claims</h1>
-            <p className="text-base text-charcoal-text/70">Complete list of all SBT claims</p>
-          </div>
-
-          {/* Full Data Table */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-primary/30 shadow-[0.1em_0.1em]">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-primary/20">
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Registry ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">User Address</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">DID Type</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">User DID ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">NFT ID</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Checkpoint</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Transaction</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Timestamp</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Event Index</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockSbtClaims.map((claim) => (
-                    <tr key={claim.id} className="border-b border-primary/10 hover:bg-primary/5 transition-colors">
-                      <td className="py-3 px-4 text-sm text-charcoal-text font-semibold">
-                        {claim.id}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text font-mono">
-                        {formatAddress(claim.registry_id)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text font-mono">
-                        {formatAddress(claim.user_address)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text">
-                        {claim.did_type}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text">
-                        {claim.user_did_id}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text font-mono">
-                        {formatAddress(claim.nft_id)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text">
-                        {claim.checkpoint_sequence_number}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text font-mono">
-                        {formatAddress(claim.transaction_digest)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text">
-                        {formatDate(claim.timestamp_ms)}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-charcoal-text">
-                        {claim.event_index}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Professional Header with SuiVerify Theme */}
+      <header className="relative z-50 bg-white/90 backdrop-blur-md border-b border-primary/20 sticky top-0 shadow-sm">
+        <div className="max-w-[1920px] mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl text-charcoal-text hover:text-primary font-bold text-sm transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em]"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Go Back</span>
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-10 max-w-[1920px] mx-auto px-6 py-8">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-charcoal-text mb-2">SBT Claims</h1>
+          <p className="text-sm text-charcoal-text/70">Showing all {mockSbtClaims.length} results</p>
+        </div>
+
+        {/* Full Data Table */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 shadow-[0.1em_0.1em]">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-primary/5 border-b-2 border-primary/20">
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">ID</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Registry ID</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">User Address</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID Type</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">User DID ID</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">NFT ID</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Checkpoint</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Transaction</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Timestamp</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Event Index</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-primary/10">
+                {mockSbtClaims.map((claim) => (
+                  <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
+                    <td className="py-4 px-6">
+                      <span className="text-sm font-bold text-charcoal-text">{claim.id}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                          {formatAddress(claim.registry_id)}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(claim.registry_id)}
+                          className="text-charcoal-text/40 hover:text-primary transition-colors"
+                          title="Copy Registry ID"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                          {formatAddress(claim.user_address)}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(claim.user_address)}
+                          className="text-charcoal-text/40 hover:text-primary transition-colors"
+                          title="Copy User Address"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
+                        {claim.did_type}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm text-charcoal-text font-medium">{claim.user_did_id}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-charcoal-text font-medium">
+                          {formatAddress(claim.nft_id)}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(claim.nft_id)}
+                          className="text-charcoal-text/40 hover:text-primary transition-colors"
+                          title="Copy NFT ID"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm text-charcoal-text font-medium">{claim.checkpoint_sequence_number.toLocaleString()}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                          {formatAddress(claim.transaction_digest)}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(claim.transaction_digest)}
+                          className="text-charcoal-text/40 hover:text-primary transition-colors"
+                          title="Copy Transaction"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm text-charcoal-text/70">{formatDate(claim.timestamp_ms)}</span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="text-sm text-charcoal-text font-medium">{claim.event_index}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
-

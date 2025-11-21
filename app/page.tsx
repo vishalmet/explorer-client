@@ -115,15 +115,24 @@ const formatAddress = (address: string) => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
-// Format timestamp to readable date
-const formatDate = (timestamp: number) => {
-  return new Date(timestamp).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+// Format timestamp to relative time (e.g., "3 secs ago")
+const formatTimeAgo = (timestamp: number) => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return `${seconds} secs ago`;
+  if (minutes < 60) return `${minutes} mins ago`;
+  if (hours < 24) return `${hours} hrs ago`;
+  return `${days} days ago`;
+};
+
+// Copy to clipboard function
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
 };
 
 export default function ExplorerPage() {
@@ -151,186 +160,280 @@ export default function ExplorerPage() {
         }}
       ></div>
 
-      {/* Integrated Header - Not as a separate component */}
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
+      {/* Professional Header with SuiVerify Theme */}
+      <header className="relative z-50 bg-white/90 backdrop-blur-md border-b border-primary/20 sticky top-0 shadow-sm">
+        <div className="max-w-[1920px] mx-auto px-6 py-4">
+          <div className="flex items-center justify-between gap-6">
+            {/* Logo */}
+            <div className="flex items-center flex-shrink-0">
         <Image
-              src="/head_logo.png" 
-              alt="SuiVerify" 
-              width={120} 
-              height={40}
-              className="h-10 w-auto"
-            />
-          </div>
+                src="/head_logo.png" 
+                alt="SuiVerify Explorer" 
+                width={140} 
+                height={45}
+                className="h-10 w-auto"
+          priority
+        />
+            </div>
 
-          {/* Search Field */}
-          <div className="flex-1 max-w-md ml-8">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-3 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-charcoal-text placeholder-charcoal-text/40 text-sm transition-all shadow-[0.1em_0.1em]"
-            />
+            {/* Search Bar - Prominent and Professional */}
+            <div className="flex-1 max-w-2xl mx-8">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by Txn Hash / Block / Address / DID"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-charcoal-text placeholder-charcoal-text/40 transition-all shadow-[0.1em_0.1em]"
+                />
+              </div>
+            </div>
+
+            {/* Network/Info Section */}
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <div className="text-right">
+                <div className="text-xs text-charcoal-text/60 uppercase tracking-wide font-semibold">Network</div>
+                <div className="text-sm font-bold text-charcoal-text">Mainnet</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-          {/* Stats Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-            {/* DID Issued */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-primary/30 shadow-[0.1em_0.1em]">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-primary/15">
+      <main className="relative z-10 max-w-[1920px] mx-auto px-6 py-8">
+        {/* Stats Cards - Professional Design with SuiVerify Theme */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+          {/* DID Issued */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 p-6 shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-primary/15">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
-                <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">
-                  DID Issued
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">DID Issued</p>
+                </div>
               </div>
-              <p className="text-3xl font-bold text-charcoal-text">
-                1,234
-              </p>
             </div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-charcoal-text">1,234</p>
+              <span className="text-xs font-medium text-success">+0.020%</span>
+            </div>
+            <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+          </div>
 
-            {/* Total Users */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-secondary/30 shadow-[0.1em_0.1em]">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-secondary/15">
+          {/* Total Users */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 p-6 shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-secondary/15">
                   <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
-                <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">
-                  Total Users
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Total Users</p>
+                </div>
               </div>
-              <p className="text-3xl font-bold text-charcoal-text">
-                5,678
-              </p>
             </div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-charcoal-text">5,678</p>
+              <span className="text-xs font-medium text-success">+0.029%</span>
+            </div>
+            <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+          </div>
 
-            {/* Protocols Integrated */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-warning/30 shadow-[0.1em_0.1em]">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-warning/15">
+          {/* Protocols Integrated */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-warning/30 p-6 shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-lg bg-warning/15">
                   <svg className="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
-                <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">
-                  Protocols Integrated
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Protocols Integrated</p>
+                </div>
               </div>
-              <p className="text-3xl font-bold text-charcoal-text">
-                12
-              </p>
+            </div>
+            <div className="flex items-baseline gap-2">
+              <p className="text-3xl font-bold text-charcoal-text">12</p>
+              <span className="text-xs font-medium text-charcoal-text/60">0%</span>
+            </div>
+            <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+          </div>
+        </div>
+
+        {/* Two Tables Side by Side - Professional Design with SuiVerify Theme */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* SBT Claims Table */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 shadow-[0.1em_0.1em]">
+            <div className="px-6 py-4 border-b-2 border-primary/20 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-charcoal-text">SBT Claims</h2>
+              <Link href="/sbt-claims" className="text-primary hover:text-primary-dark text-sm font-bold flex items-center gap-1 transition-colors">
+                View All
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-primary/5 border-b-2 border-primary/20">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">User Address</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID Type</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID ID</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Age</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-primary/10">
+                  {mockSbtClaims.slice(0, 4).map((claim) => (
+                    <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                            {formatAddress(claim.user_address)}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(claim.user_address)}
+                            className="text-charcoal-text/40 hover:text-primary transition-colors"
+                            title="Copy address"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
+                          {claim.did_type}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-sm text-charcoal-text font-medium">{claim.user_did_id}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="text-sm text-charcoal-text/70">{formatTimeAgo(claim.timestamp_ms)}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-4 border-t-2 border-primary/20">
+              <Link
+                href="/sbt-claims"
+                className="w-full flex items-center justify-center px-4 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-sm font-bold transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em] border-[3px] border-primary/30"
+              >
+                View All SBT Claims
+              </Link>
             </div>
           </div>
 
-          {/* Two Tables Side by Side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* SBT Claims Table */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-primary/30 shadow-[0.1em_0.1em]">
-              <h2 className="text-2xl font-bold mb-6 text-charcoal-text">SBT Claims</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-primary/20">
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">User Address</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">DID Type</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">DID ID</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Timestamp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockSbtClaims.slice(0, 4).map((claim) => (
-                      <tr key={claim.id} className="border-b border-primary/10 hover:bg-primary/5 transition-colors">
-                        <td className="py-3 px-2 text-sm text-charcoal-text font-mono">
-                          {formatAddress(claim.user_address)}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text">
-                          {claim.did_type}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text">
-                          {claim.user_did_id}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text">
-                          {formatDate(claim.timestamp_ms)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-6">
-                <Link
-                  href="/sbt-claims"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em]"
-                >
-                  Show More
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
+          {/* DID Reusage Table */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 shadow-[0.1em_0.1em]">
+            <div className="px-6 py-4 border-b-2 border-secondary/20 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-charcoal-text">DID Reusage</h2>
+              <Link href="/did-reusage" className="text-secondary hover:text-secondary-dark text-sm font-bold flex items-center gap-1 transition-colors">
+                View All
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
-
-            {/* DID Reusage Table */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 border-[3px] border-secondary/30 shadow-[0.1em_0.1em]">
-              <h2 className="text-2xl font-bold mb-6 text-charcoal-text">DID Reusage</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-secondary/20">
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Protocol</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">User Address</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">DID NFT</th>
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-charcoal-text/60 uppercase tracking-wider">Enclave TX</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockDidReusage.slice(0, 4).map((reusage, index) => (
-                      <tr key={index} className="border-b border-secondary/10 hover:bg-secondary/5 transition-colors">
-                        <td className="py-3 px-2 text-sm text-charcoal-text font-semibold">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-secondary/5 border-b-2 border-secondary/20">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Protocol</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">User Address</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID NFT</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Enclave TX</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-secondary/10">
+                  {mockDidReusage.slice(0, 4).map((reusage, index) => (
+                    <tr key={index} className="hover:bg-secondary/5 transition-colors">
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/30">
                           {reusage.protocol_involved}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text font-mono">
-                          {formatAddress(reusage.user_address)}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text font-mono">
-                          {formatAddress(reusage.did_verified_id)}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-charcoal-text font-mono">
-                          {formatAddress(reusage.enclave_tx_digest)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-6">
-                <Link
-                  href="/did-reusage"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-secondary text-white rounded-xl font-bold text-sm transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em]"
-                >
-                  Show More
-                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                            {formatAddress(reusage.user_address)}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(reusage.user_address)}
+                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                            title="Copy address"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-charcoal-text font-medium">
+                            {formatAddress(reusage.did_verified_id)}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(reusage.did_verified_id)}
+                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                            title="Copy DID NFT"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-charcoal-text font-medium">
+                            {formatAddress(reusage.enclave_tx_digest)}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(reusage.enclave_tx_digest)}
+                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                            title="Copy TX"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-6 py-4 border-t-2 border-secondary/20">
+              <Link
+                href="/did-reusage"
+                className="w-full flex items-center justify-center px-4 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary rounded-xl text-sm font-bold transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em] border-[3px] border-secondary/30"
+              >
+                View All DID Reusage
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
