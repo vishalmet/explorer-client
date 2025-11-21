@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 // Mock data for SBT claims
 const mockSbtClaims = [
@@ -108,6 +109,28 @@ const mockDidReusage = [
   }
 ];
 
+// Mock chart data for Total Credentials Issued (Bar Chart)
+const credentialsIssuedData = [
+  { date: '10/24', value: 8500000 },
+  { date: '10/28', value: 8700000 },
+  { date: '11/01', value: 8900000 },
+  { date: '11/05', value: 9000000 },
+  { date: '11/09', value: 9100000 },
+  { date: '11/13', value: 9200000 },
+  { date: '11/17', value: 9298876 },
+];
+
+// Mock chart data for Total Transactions (Area Chart)
+const transactionsData = [
+  { date: '10/24', value: 150000 },
+  { date: '10/28', value: 165000 },
+  { date: '11/01', value: 180000 },
+  { date: '11/05', value: 175000 },
+  { date: '11/09', value: 190000 },
+  { date: '11/13', value: 185000 },
+  { date: '11/17', value: 181162 },
+];
+
 // Format address to show first 6 and last 4 characters
 const formatAddress = (address: string) => {
   if (!address) return '';
@@ -133,6 +156,18 @@ const formatTimeAgo = (timestamp: number) => {
 // Copy to clipboard function
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
+};
+
+// Custom tooltip for charts
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/95 backdrop-blur-sm border-[3px] border-primary/30 rounded-xl p-3 shadow-[0.1em_0.1em]">
+        <p className="text-sm font-bold text-charcoal-text">{`${payload[0].value.toLocaleString()}`}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 export default function ExplorerPage() {
@@ -270,6 +305,83 @@ export default function ExplorerPage() {
               <span className="text-xs font-medium text-charcoal-text/60">0%</span>
             </div>
             <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          {/* Total Credentials Issued - Bar Chart */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 p-6 shadow-[0.1em_0.1em]">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-charcoal-text mb-1">Total Credentials Issued</h3>
+              <p className="text-xs text-charcoal-text/60">Shows total VCs issued based on verified on-chain identity actions.</p>
+            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={credentialsIssuedData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#7C3AED" opacity={0.1} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#212529"
+                  strokeWidth={2}
+                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                />
+                <YAxis 
+                  stroke="#212529"
+                  strokeWidth={2}
+                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                  {credentialsIssuedData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="#7C3AED" />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Total Transactions - Area Chart */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 p-6 shadow-[0.1em_0.1em]">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-charcoal-text mb-1">Total Transactions</h3>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-charcoal-text">17,042,606</p>
+                <p className="text-xs text-charcoal-text/60">Daily Transaction (Avg): 181,162 txns</p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={transactionsData}>
+                <defs>
+                  <linearGradient id="colorTransactions" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#14B8A6" opacity={0.1} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#212529"
+                  strokeWidth={2}
+                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                />
+                <YAxis 
+                  stroke="#212529"
+                  strokeWidth={2}
+                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Area 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#14B8A6" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorTransactions)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
