@@ -326,7 +326,7 @@ export default function ExplorerPage() {
                 <tbody className="divide-y divide-primary/10">
                   {sbtClaims && sbtClaims.length > 0 ? (
                     sbtClaims.slice(0, 4).map((claim) => (
-                      <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
+                      <tr key={claim.transaction_digest} className="hover:bg-primary/5 transition-colors">
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
@@ -370,7 +370,7 @@ export default function ExplorerPage() {
                       </tr>
                     ))
                   ) : (
-                    <tr>
+                    <tr key="empty-sbt-claims">
                       <td colSpan={4} className="py-8 text-center text-sm text-charcoal-text/60">
                         {loading ? 'Loading...' : 'No SBT claims available yet'}
                       </td>
@@ -412,7 +412,7 @@ export default function ExplorerPage() {
                 </thead>
                 <tbody className="divide-y divide-secondary/10">
                   {settlements && settlements.length > 0 ? (
-                    settlements.slice(0, 4).map((settlement, index) => (
+                    settlements.slice(0, 4).map((settlement) => (
                       <tr key={settlement.id} className="hover:bg-secondary/5 transition-colors">
                         <td className="py-4 px-6">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/30">
@@ -470,7 +470,7 @@ export default function ExplorerPage() {
                       </tr>
                     ))
                   ) : (
-                    <tr>
+                    <tr key="empty-settlements">
                       <td colSpan={4} className="py-8 text-center text-sm text-charcoal-text/60">
                         {loading ? 'Loading...' : 'No DID reusage settlements yet'}
                       </td>
