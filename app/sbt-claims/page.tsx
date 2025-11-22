@@ -177,10 +177,10 @@ export default function SbtClaimsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/10">
-                  {displayClaims.map((claim) => (
-                    <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
+                  {displayClaims.map((claim, index) => (
+                    <tr key={claim.transaction_digest} className="hover:bg-primary/5 transition-colors">
                       <td className="py-4 px-6">
-                        <span className="text-sm font-bold text-charcoal-text">{claim.id}</span>
+                        <span className="text-sm font-bold text-charcoal-text">{index + 1}</span>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
