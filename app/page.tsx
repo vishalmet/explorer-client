@@ -112,6 +112,19 @@ const formatAddress = (address: string) => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
+// Map DID Type to readable label
+const getDIDTypeLabel = (type: number | string) => {
+  const typeNum = Number(type);
+  switch (typeNum) {
+    case 1:
+      return 'Age Verify';
+    case 2:
+      return 'Citizenship Verify';
+    default:
+      return `Type ${type}`;
+  }
+};
+
 // Format timestamp to relative time (e.g., "3 secs ago")
 const formatTimeAgo = (timestamp: number) => {
   const now = Date.now();
@@ -460,7 +473,7 @@ export default function ExplorerPage() {
                         </td>
                         <td className="py-4 px-6">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
-                            {claim.did_type}
+                            {getDIDTypeLabel(claim.did_type)}
                           </span>
                         </td>
                         <td className="py-4 px-6">

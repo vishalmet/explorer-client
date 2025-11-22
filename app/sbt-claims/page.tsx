@@ -12,6 +12,19 @@ const formatAddress = (address: string) => {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 };
 
+// Map DID Type to readable label
+const getDIDTypeLabel = (type: number | string) => {
+  const typeNum = Number(type);
+  switch (typeNum) {
+    case 1:
+      return 'Age Verify';
+    case 2:
+      return 'Citizenship Verify';
+    default:
+      return `Type ${type}`;
+  }
+};
+
 // Format timestamp to readable date
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleDateString('en-US', {
@@ -216,7 +229,7 @@ export default function SbtClaimsPage() {
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
-                          {claim.did_type}
+                          {getDIDTypeLabel(claim.did_type)}
                         </span>
                       </td>
                       <td className="py-4 px-6">
