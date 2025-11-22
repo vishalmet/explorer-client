@@ -320,7 +320,7 @@ export default function ExplorerPage() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-charcoal-text">12</p>
+              <p className="text-3xl font-bold text-charcoal-text">3</p>
               <span className="text-xs font-medium text-charcoal-text/60">0%</span>
             </div>
             <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
