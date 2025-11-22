@@ -7,29 +7,103 @@ import Link from 'next/link';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { fetchDIDEvents, DIDClaimEvent, fetchSettlements, SettlementRecord } from './lib/api';
 
-// Mock data removed - using real API data only
+// Helper function to process DID events into chart data
+const processDIDEventsByDate = (events: DIDClaimEvent[]) => {
+  if (!events || events.length === 0) return [];
 
-// Mock chart data for Total DID Issued (Bar Chart)
-const didIssuedData = [
-  { date: '10/24', value: 1200 },
-  { date: '10/28', value: 1250 },
-  { date: '11/01', value: 1300 },
-  { date: '11/05', value: 1280 },
-  { date: '11/09', value: 1320 },
-  { date: '11/13', value: 1340 },
-  { date: '11/17', value: 1234 },
-];
+  // Group events by date
+  const dateMap = new Map<string, number>();
 
-// Mock chart data for DID Reused (Area Chart)
-const didReusedData = [
-  { date: '10/24', value: 450 },
-  { date: '10/28', value: 480 },
-  { date: '11/01', value: 520 },
-  { date: '11/05', value: 510 },
-  { date: '11/09', value: 550 },
-  { date: '11/13', value: 540 },
-  { date: '11/17', value: 568 },
-];
+  events.forEach(event => {
+    const date = new Date(event.timestamp_ms);
+    const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+    dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
+  });
+
+  // Convert to array and sort by date
+  const sortedEntries = Array.from(dateMap.entries())
+    .sort((a, b) => {
+      const [aMonth, aDay] = a[0].split('/').map(Number);
+      const [bMonth, bDay] = b[0].split('/').map(Number);
+      return (aMonth * 100 + aDay) - (bMonth * 100 + bDay);
+    });
+
+  // Calculate cumulative totals
+  let cumulative = 0;
+  return sortedEntries.map(([date, count]) => {
+    cumulative += count;
+    return { date, value: cumulative };
+  });
+};
+
+// Helper function to process settlements into reusage chart data
+const processSettlementsByDate = (settlements: SettlementRecord[]) => {
+  if (!settlements || settlements.length === 0) {
+    console.log('No settlements to process');
+    return [];
+  }
+
+  console.log('Processing settlements:', settlements);
+
+  // Group settlements by date
+  const dateMap = new Map<string, number>();
+
+  settlements.forEach(settlement => {
+    console.log('Settlement timestamp:', settlement.timestamp, typeof settlement.timestamp);
+
+    // Convert string timestamp to number first
+    const timestamp = typeof settlement.timestamp === 'string'
+      ? parseInt(settlement.timestamp, 10)
+      : settlement.timestamp;
+
+    // Convert timestamp to milliseconds if it's in seconds (timestamp < 10000000000 means seconds)
+    const timestampMs = timestamp < 10000000000
+      ? timestamp * 1000
+      : timestamp;
+
+    const date = new Date(timestampMs);
+
+    console.log('Parsed date:', date, 'isValid:', !isNaN(date.getTime()));
+
+    // Skip invalid dates
+    if (isNaN(date.getTime())) {
+      console.log('Skipping invalid date');
+      return;
+    }
+
+    const dateKey = `${date.getMonth() + 1}/${date.getDate()}`;
+    console.log('Date key:', dateKey);
+    dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
+  });
+
+  console.log('Date map:', Array.from(dateMap.entries()));
+
+  // Convert to array and sort by date
+  const sortedEntries = Array.from(dateMap.entries())
+    .sort((a, b) => {
+      const [aMonth, aDay] = a[0].split('/').map(Number);
+      const [bMonth, bDay] = b[0].split('/').map(Number);
+      return (aMonth * 100 + aDay) - (bMonth * 100 + bDay);
+    });
+
+  // Calculate cumulative totals
+  let cumulative = 0;
+  const result = sortedEntries.map(([date, count]) => {
+    cumulative += count;
+    return { date, value: cumulative };
+  });
+
+  // If we only have one data point, add a starting point to make the chart render properly
+  if (result.length === 1) {
+    // Get the date and create a previous date label
+    const [month, day] = result[0].date.split('/').map(Number);
+    const prevDay = day - 1 > 0 ? day - 1 : 1;
+    result.unshift({ date: `${month}/${prevDay}`, value: 0 });
+  }
+
+  console.log('Processed settlement data:', result);
+  return result;
+};
 
 // Format address to show first 6 and last 4 characters
 const formatAddress = (address: string) => {
@@ -75,28 +149,52 @@ export default function ExplorerPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sbtClaims, setSbtClaims] = useState<DIDClaimEvent[]>([]);
   const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
+  const [allEvents, setAllEvents] = useState<DIDClaimEvent[]>([]);
+  const [allSettlements, setAllSettlements] = useState<SettlementRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        // Fetch SBT claims
+        // Fetch recent SBT claims for table
         const eventsResponse = await fetchDIDEvents({ limit: 4 });
         setSbtClaims(eventsResponse.data);
 
-        // Fetch settlements
+        // Fetch ALL events for chart data
+        const allEventsResponse = await fetchDIDEvents({ limit: 10000 });
+        setAllEvents(allEventsResponse.data);
+
+        // Fetch recent settlements for table
         const settlementsResponse = await fetchSettlements({ limit: 4 });
         setSettlements(settlementsResponse.data);
+
+        // Fetch ALL settlements for chart data
+        const allSettlementsResponse = await fetchSettlements({ limit: 10000 });
+        setAllSettlements(allSettlementsResponse.data);
       } catch (err) {
         console.error('Failed to fetch data:', err);
         setSbtClaims([]);
         setSettlements([]);
+        setAllEvents([]);
+        setAllSettlements([]);
       } finally {
         setLoading(false);
       }
     }
     loadData();
   }, []);
+
+  // Process chart data from real API data
+  const didIssuedData = processDIDEventsByDate(allEvents);
+  const didReusedData = processSettlementsByDate(allSettlements);
+
+  // Calculate stats
+  const totalDIDIssued = allEvents.length;
+  const totalReused = allSettlements.length;
+  const uniqueUsers = new Set(allEvents.map(e => e.user_address)).size;
+  const avgDailyReusage = didReusedData.length > 0
+    ? Math.round(totalReused / didReusedData.length)
+    : 0;
 
   return (
     <div className="w-full bg-ghost-white outfit min-h-screen relative overflow-hidden">
@@ -176,10 +274,12 @@ export default function ExplorerPage() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-charcoal-text">1,234</p>
-              <span className="text-xs font-medium text-success">+0.020%</span>
+              <p className="text-3xl font-bold text-charcoal-text">{totalDIDIssued.toLocaleString()}</p>
+              {didIssuedData.length > 1 && (
+                <span className="text-xs font-medium text-success">+{didIssuedData[didIssuedData.length - 1].value - didIssuedData[0].value}</span>
+              )}
             </div>
-            <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+            <p className="text-xs text-charcoal-text/60 mt-1">total claims recorded</p>
           </div>
 
           {/* Total Users */}
@@ -197,10 +297,12 @@ export default function ExplorerPage() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-charcoal-text">5,678</p>
-              <span className="text-xs font-medium text-success">+0.029%</span>
+              <p className="text-3xl font-bold text-charcoal-text">{uniqueUsers.toLocaleString()}</p>
+              {uniqueUsers > 0 && (
+                <span className="text-xs font-medium text-charcoal-text/60">unique</span>
+              )}
             </div>
-            <p className="text-xs text-charcoal-text/60 mt-1">past 30 days</p>
+            <p className="text-xs text-charcoal-text/60 mt-1">verified addresses</p>
           </div>
 
           {/* Protocols Integrated */}
@@ -231,30 +333,38 @@ export default function ExplorerPage() {
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-primary/30 p-6 shadow-[0.1em_0.1em]">
             <div className="mb-4">
               <h3 className="text-lg font-bold text-charcoal-text mb-1">Total DID Issued</h3>
-              <p className="text-xs text-charcoal-text/60">Shows total DIDs issued based on verified on-chain identity actions.</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-xs text-charcoal-text/60">Shows cumulative DIDs issued over time</p>
+              </div>
             </div>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={didIssuedData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#7C3AED" opacity={0.1} />
-                <XAxis
-                  dataKey="date"
-                  stroke="#212529"
-                  strokeWidth={2}
-                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                />
-                <YAxis
-                  stroke="#212529"
-                  strokeWidth={2}
-                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-                  {didIssuedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill="#7C3AED" />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {didIssuedData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={didIssuedData.slice(-7)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#7C3AED" opacity={0.1} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#212529"
+                    strokeWidth={2}
+                    tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    stroke="#212529"
+                    strokeWidth={2}
+                    tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                    {didIssuedData.slice(-7).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill="#7C3AED" />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] text-sm text-charcoal-text/40">
+                No data available
+              </div>
+            )}
           </div>
 
           {/* DID Reused - Area Chart */}
@@ -262,41 +372,46 @@ export default function ExplorerPage() {
             <div className="mb-4">
               <h3 className="text-lg font-bold text-charcoal-text mb-1">DID Reused</h3>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-charcoal-text">568</p>
-                <p className="text-xs text-charcoal-text/60">Daily Reusage (Avg): 81 reuses</p>
+                <p className="text-xs text-charcoal-text/60">Total: {totalReused.toLocaleString()} | Avg: {avgDailyReusage} reuses/day</p>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={didReusedData}>
-                <defs>
-                  <linearGradient id="colorDidReused" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#14B8A6" opacity={0.1} />
-                <XAxis
-                  dataKey="date"
-                  stroke="#212529"
-                  strokeWidth={2}
-                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                />
-                <YAxis
-                  stroke="#212529"
-                  strokeWidth={2}
-                  tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#14B8A6"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorDidReused)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {didReusedData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={didReusedData.slice(-7)}>
+                  <defs>
+                    <linearGradient id="colorDidReused" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#14B8A6" opacity={0.1} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="#212529"
+                    strokeWidth={2}
+                    tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <YAxis
+                    stroke="#212529"
+                    strokeWidth={2}
+                    tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#14B8A6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorDidReused)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[250px] text-sm text-charcoal-text/40">
+                No data available
+              </div>
+            )}
           </div>
         </div>
 
