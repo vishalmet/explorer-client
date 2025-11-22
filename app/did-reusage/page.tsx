@@ -2,66 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { fetchSettlements, SettlementRecord } from '../lib/api';
 
-// Mock data for DID reusage - extended version
-const mockDidReusage = [
-  {
-    enclave_tx_digest: "0x1111111111111111111111111111111111111111111111111111111111111111",
-    did_verified_id: "0x2222222222222222222222222222222222222222222222222222222222222222",
-    protocol_involved: "Alphafi",
-    user_address: "0x3333333333333333333333333333333333333333333333333333333333333333",
-    payment_tx_digest: "0x4444444444444444444444444444444444444444444444444444444444444444"
-  },
-  {
-    enclave_tx_digest: "0x5555555555555555555555555555555555555555555555555555555555555555",
-    did_verified_id: "0x6666666666666666666666666666666666666666666666666666666666666666",
-    protocol_involved: "Suilend",
-    user_address: "0x7777777777777777777777777777777777777777777777777777777777777777",
-    payment_tx_digest: "0x8888888888888888888888888888888888888888888888888888888888888888"
-  },
-  {
-    enclave_tx_digest: "0x9999999999999999999999999999999999999999999999999999999999999999",
-    did_verified_id: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    protocol_involved: "Alphafi",
-    user_address: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    payment_tx_digest: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-  },
-  {
-    enclave_tx_digest: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-    did_verified_id: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-    protocol_involved: "Suilend",
-    user_address: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    payment_tx_digest: "0x1010101010101010101010101010101010101010101010101010101010101010"
-  },
-  {
-    enclave_tx_digest: "0x2020202020202020202020202020202020202020202020202020202020202020",
-    did_verified_id: "0x3030303030303030303030303030303030303030303030303030303030303030",
-    protocol_involved: "Alphafi",
-    user_address: "0x4040404040404040404040404040404040404040404040404040404040404040",
-    payment_tx_digest: "0x5050505050505050505050505050505050505050505050505050505050505050"
-  },
-  {
-    enclave_tx_digest: "0x6060606060606060606060606060606060606060606060606060606060606060",
-    did_verified_id: "0x7070707070707070707070707070707070707070707070707070707070707070",
-    protocol_involved: "Suilend",
-    user_address: "0x8080808080808080808080808080808080808080808080808080808080808080",
-    payment_tx_digest: "0x9090909090909090909090909090909090909090909090909090909090909090"
-  },
-  {
-    enclave_tx_digest: "0xa0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
-    did_verified_id: "0xb0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0",
-    protocol_involved: "Alphafi",
-    user_address: "0xc0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0",
-    payment_tx_digest: "0xd0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0"
-  },
-  {
-    enclave_tx_digest: "0xe0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
-    did_verified_id: "0xf0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0",
-    protocol_involved: "Suilend",
-    user_address: "0x0101010101010101010101010101010101010101010101010101010101010101",
-    payment_tx_digest: "0x0202020202020202020202020202020202020202020202020202020202020202"
-  }
-];
+// Mock data removed - using real API data only
 
 // Format address to show first 6 and last 4 characters
 const formatAddress = (address: string) => {
@@ -77,6 +21,27 @@ const copyToClipboard = (text: string) => {
 
 export default function DidReusagePage() {
   const router = useRouter();
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSettlements() {
+      try {
+        setLoading(true);
+        const response = await fetchSettlements({ limit: 100 });
+        setSettlements(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch settlements:', err);
+        setError('Failed to load settlement data');
+        setSettlements([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettlements();
+  }, []);
 
   return (
     <div className="w-full bg-ghost-white outfit min-h-screen relative overflow-hidden">
@@ -123,10 +88,66 @@ export default function DidReusagePage() {
         {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-charcoal-text mb-2">DID Reusage</h1>
-          <p className="text-sm text-charcoal-text/70">Showing all {mockDidReusage.length} results</p>
+          {!loading && !error && <p className="text-sm text-charcoal-text/70">Showing all {settlements.length} results</p>}
         </div>
 
-        {/* Full Data Table */}
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 shadow-[0.1em_0.1em] p-12">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 border-4 border-secondary/30 border-t-secondary rounded-full animate-spin"></div>
+              </div>
+              <p className="text-lg font-semibold text-charcoal-text">Loading settlement data...</p>
+              <p className="text-sm text-charcoal-text/60">Please wait while we fetch DID reusage records</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {!loading && error && (
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-red-500/30 shadow-[0.1em_0.1em] p-12">
+            <div className="flex flex-col items-center justify-center gap-6">
+              <div className="p-4 rounded-full bg-red-500/10">
+                <svg className="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-charcoal-text mb-2">Failed to Load Settlements</h2>
+                <p className="text-sm text-charcoal-text/70 mb-1">{error}</p>
+                <p className="text-xs text-charcoal-text/50">Please check if the settlement API is running on http://localhost:3001</p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-secondary hover:bg-secondary-dark text-white rounded-xl font-bold transition-all shadow-[0.1em_0.1em] hover:shadow-[0.15em_0.15em] hover:-translate-x-[0.05em] hover:-translate-y-[0.05em] border-[3px] border-secondary/30"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && settlements.length === 0 && (
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 shadow-[0.1em_0.1em] p-12">
+            <div className="flex flex-col items-center justify-center gap-6">
+              <div className="p-4 rounded-full bg-secondary/10">
+                <svg className="w-16 h-16 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-charcoal-text mb-2">No DID Reusage Records</h2>
+                <p className="text-sm text-charcoal-text/70">There are currently no settlement records in the database.</p>
+                <p className="text-xs text-charcoal-text/50 mt-1">Records will appear here when users reuse their DIDs with protocols.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full Data Table - Only shown when data exists */}
+        {!loading && !error && settlements.length > 0 && (
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl border-[3px] border-secondary/30 shadow-[0.1em_0.1em]">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -140,15 +161,15 @@ export default function DidReusagePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-secondary/10">
-                {mockDidReusage.map((reusage, index) => (
-                  <tr key={index} className="hover:bg-secondary/5 transition-colors">
+                {settlements.map((settlement) => (
+                  <tr key={settlement.id} className="hover:bg-secondary/5 transition-colors">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                          {formatAddress(reusage.enclave_tx_digest)}
+                          {formatAddress(settlement.enclave_tx_digest)}
                         </span>
                         <button
-                          onClick={() => copyToClipboard(reusage.enclave_tx_digest)}
+                          onClick={() => copyToClipboard(settlement.enclave_tx_digest)}
                           className="text-charcoal-text/40 hover:text-secondary transition-colors"
                           title="Copy Enclave TX"
                         >
@@ -161,10 +182,10 @@ export default function DidReusagePage() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                          {formatAddress(reusage.did_verified_id)}
+                          {formatAddress(settlement.did_verified_id)}
                         </span>
                         <button
-                          onClick={() => copyToClipboard(reusage.did_verified_id)}
+                          onClick={() => copyToClipboard(settlement.did_verified_id)}
                           className="text-charcoal-text/40 hover:text-secondary transition-colors"
                           title="Copy DID NFT"
                         >
@@ -176,16 +197,16 @@ export default function DidReusagePage() {
                     </td>
                     <td className="py-4 px-6">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/30">
-                        {reusage.protocol_involved}
+                        {settlement.protocol_name}
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                          {formatAddress(reusage.user_address)}
+                          {formatAddress(settlement.user_address)}
                         </span>
                         <button
-                          onClick={() => copyToClipboard(reusage.user_address)}
+                          onClick={() => copyToClipboard(settlement.user_address)}
                           className="text-charcoal-text/40 hover:text-secondary transition-colors"
                           title="Copy User Address"
                         >
@@ -198,10 +219,10 @@ export default function DidReusagePage() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                          {formatAddress(reusage.payment_tx_digest)}
+                          {formatAddress(settlement.payment_tx_digest)}
                         </span>
                         <button
-                          onClick={() => copyToClipboard(reusage.payment_tx_digest)}
+                          onClick={() => copyToClipboard(settlement.payment_tx_digest)}
                           className="text-charcoal-text/40 hover:text-secondary transition-colors"
                           title="Copy Payment TX"
                         >
@@ -217,6 +238,7 @@ export default function DidReusagePage() {
             </table>
           </div>
         </div>
+        )}
       </main>
     </div>
   );

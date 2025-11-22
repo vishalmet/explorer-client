@@ -5,48 +5,9 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { fetchDIDEvents, DIDClaimEvent } from './lib/api';
+import { fetchDIDEvents, DIDClaimEvent, fetchSettlements, SettlementRecord } from './lib/api';
 
 // Mock data removed - using real API data only
-
-// Mock data for DID reusage
-const mockDidReusage = [
-  {
-    enclave_tx_digest: "0x1111111111111111111111111111111111111111111111111111111111111111",
-    did_verified_id: "0x2222222222222222222222222222222222222222222222222222222222222222",
-    protocol_involved: "Alphafi",
-    user_address: "0x3333333333333333333333333333333333333333333333333333333333333333",
-    payment_tx_digest: "0x4444444444444444444444444444444444444444444444444444444444444444"
-  },
-  {
-    enclave_tx_digest: "0x5555555555555555555555555555555555555555555555555555555555555555",
-    did_verified_id: "0x6666666666666666666666666666666666666666666666666666666666666666",
-    protocol_involved: "Suilend",
-    user_address: "0x7777777777777777777777777777777777777777777777777777777777777777",
-    payment_tx_digest: "0x8888888888888888888888888888888888888888888888888888888888888888"
-  },
-  {
-    enclave_tx_digest: "0x9999999999999999999999999999999999999999999999999999999999999999",
-    did_verified_id: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    protocol_involved: "Alphafi",
-    user_address: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-    payment_tx_digest: "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-  },
-  {
-    enclave_tx_digest: "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-    did_verified_id: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-    protocol_involved: "Suilend",
-    user_address: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-    payment_tx_digest: "0x1010101010101010101010101010101010101010101010101010101010101010"
-  },
-  {
-    enclave_tx_digest: "0x2020202020202020202020202020202020202020202020202020202020202020",
-    did_verified_id: "0x3030303030303030303030303030303030303030303030303030303030303030",
-    protocol_involved: "Alphafi",
-    user_address: "0x4040404040404040404040404040404040404040404040404040404040404040",
-    payment_tx_digest: "0x5050505050505050505050505050505050505050505050505050505050505050"
-  }
-];
 
 // Mock chart data for Total DID Issued (Bar Chart)
 const didIssuedData = [
@@ -113,21 +74,28 @@ export default function ExplorerPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [sbtClaims, setSbtClaims] = useState<DIDClaimEvent[]>([]);
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadEvents() {
+    async function loadData() {
       try {
-        const response = await fetchDIDEvents({ limit: 4 });
-        setSbtClaims(response.data);
+        // Fetch SBT claims
+        const eventsResponse = await fetchDIDEvents({ limit: 4 });
+        setSbtClaims(eventsResponse.data);
+
+        // Fetch settlements
+        const settlementsResponse = await fetchSettlements({ limit: 4 });
+        setSettlements(settlementsResponse.data);
       } catch (err) {
-        console.error('Failed to fetch events:', err);
+        console.error('Failed to fetch data:', err);
         setSbtClaims([]);
+        setSettlements([]);
       } finally {
         setLoading(false);
       }
     }
-    loadEvents();
+    loadData();
   }, []);
 
   return (
@@ -443,63 +411,71 @@ export default function ExplorerPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-secondary/10">
-                  {mockDidReusage.slice(0, 4).map((reusage, index) => (
-                    <tr key={index} className="hover:bg-secondary/5 transition-colors">
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/30">
-                          {reusage.protocol_involved}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                            {formatAddress(reusage.user_address)}
+                  {settlements && settlements.length > 0 ? (
+                    settlements.slice(0, 4).map((settlement, index) => (
+                      <tr key={settlement.id} className="hover:bg-secondary/5 transition-colors">
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/30">
+                            {settlement.protocol_name}
                           </span>
-                          <button
-                            onClick={() => copyToClipboard(reusage.user_address)}
-                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
-                            title="Copy address"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-charcoal-text font-medium">
-                            {formatAddress(reusage.did_verified_id)}
-                          </span>
-                          <button
-                            onClick={() => copyToClipboard(reusage.did_verified_id)}
-                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
-                            title="Copy DID NFT"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-charcoal-text font-medium">
-                            {formatAddress(reusage.enclave_tx_digest)}
-                          </span>
-                          <button
-                            onClick={() => copyToClipboard(reusage.enclave_tx_digest)}
-                            className="text-charcoal-text/40 hover:text-secondary transition-colors"
-                            title="Copy TX"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                              {formatAddress(settlement.user_address)}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(settlement.user_address)}
+                              className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                              title="Copy address"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-mono text-charcoal-text font-medium">
+                              {formatAddress(settlement.did_verified_id)}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(settlement.did_verified_id)}
+                              className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                              title="Copy DID NFT"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-mono text-charcoal-text font-medium">
+                              {formatAddress(settlement.enclave_tx_digest)}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(settlement.enclave_tx_digest)}
+                              className="text-charcoal-text/40 hover:text-secondary transition-colors"
+                              title="Copy TX"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-sm text-charcoal-text/60">
+                        {loading ? 'Loading...' : 'No DID reusage settlements yet'}
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
