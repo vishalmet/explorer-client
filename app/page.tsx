@@ -1,74 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { fetchDIDEvents, DIDClaimEvent } from './lib/api';
 
-// Mock data for SBT claims
-const mockSbtClaims = [
-  {
-    id: 1,
-    registry_id: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    user_address: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    did_type: "github",
-    user_did_id: "octocat",
-    nft_id: "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    checkpoint_sequence_number: 264113881,
-    transaction_digest: "5xK8mN9pQ2rS3tU4vW5xY6zA7bC8dE9fG0hI1jK2lM3nO4pQ5rS6tU7vW8xY9zA0",
-    timestamp_ms: 1732136414611,
-    event_index: 0
-  },
-  {
-    id: 2,
-    registry_id: "0x2345678901bcdef2345678901bcdef2345678901bcdef2345678901bcdef",
-    user_address: "0xbcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    did_type: "twitter",
-    user_did_id: "twitter_user",
-    nft_id: "0xa9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    checkpoint_sequence_number: 264113882,
-    transaction_digest: "6yL9nO0qR3sT4uV5wX6yZ7aB8cD9eF0gH1iJ2kL3mN4oP5qR6sT7uV8wX9yZ0",
-    timestamp_ms: 1732136415611,
-    event_index: 1
-  },
-  {
-    id: 3,
-    registry_id: "0x3456789012cdef3456789012cdef3456789012cdef3456789012cdef",
-    user_address: "0xcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    did_type: "discord",
-    user_did_id: "discord_user",
-    nft_id: "0xb9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    checkpoint_sequence_number: 264113883,
-    transaction_digest: "7zM0oP1rS4tU5vW6xY7zA8bC9dE0fG1hI2jK3lL4mM5nO6pP7qR8sT9uV0wX1",
-    timestamp_ms: 1732136416611,
-    event_index: 2
-  },
-  {
-    id: 4,
-    registry_id: "0x4567890123def4567890123def4567890123def4567890123def",
-    user_address: "0xdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    did_type: "github",
-    user_did_id: "developer123",
-    nft_id: "0xc9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    checkpoint_sequence_number: 264113884,
-    transaction_digest: "8aN1pQ2sT5uV6wX7yZ8aB9cD0eF1gH2iI3jJ4kK5lL6mM7nN8oO9pP0qR1sS2",
-    timestamp_ms: 1732136417611,
-    event_index: 3
-  },
-  {
-    id: 5,
-    registry_id: "0x5678901234ef5678901234ef5678901234ef5678901234ef",
-    user_address: "0xef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-    did_type: "twitter",
-    user_did_id: "crypto_user",
-    nft_id: "0xd9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
-    checkpoint_sequence_number: 264113885,
-    transaction_digest: "9bO2qR3tU6vW7xY8zA9bC0dE1fG2hH3iI4jJ5kK6lL7mM8nN9oO0pP1qQ2rR3",
-    timestamp_ms: 1732136418611,
-    event_index: 4
-  }
-];
+// Mock data removed - using real API data only
 
 // Mock data for DID reusage
 const mockDidReusage = [
@@ -173,6 +112,23 @@ const CustomTooltip = ({ active, payload }: any) => {
 export default function ExplorerPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [sbtClaims, setSbtClaims] = useState<DIDClaimEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const response = await fetchDIDEvents({ limit: 4 });
+        setSbtClaims(response.data);
+      } catch (err) {
+        console.error('Failed to fetch events:', err);
+        setSbtClaims([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
 
   return (
     <div className="w-full bg-ghost-white outfit min-h-screen relative overflow-hidden">
@@ -201,14 +157,14 @@ export default function ExplorerPage() {
           <div className="flex items-center justify-between gap-6">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-        <Image
-                src="/head_logo.png" 
-                alt="SuiVerify Explorer" 
-                width={140} 
+              <Image
+                src="/head_logo.png"
+                alt="SuiVerify Explorer"
+                width={140}
                 height={45}
                 className="h-10 w-auto"
-          priority
-        />
+                priority
+              />
             </div>
 
             {/* Search Bar - Prominent and Professional */}
@@ -312,13 +268,13 @@ export default function ExplorerPage() {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={didIssuedData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#7C3AED" opacity={0.1} />
-                <XAxis 
-                  dataKey="date" 
+                <XAxis
+                  dataKey="date"
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
                 />
-                <YAxis 
+                <YAxis
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
@@ -346,30 +302,30 @@ export default function ExplorerPage() {
               <AreaChart data={didReusedData}>
                 <defs>
                   <linearGradient id="colorDidReused" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#14B8A6" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#14B8A6" opacity={0.1} />
-                <XAxis 
-                  dataKey="date" 
+                <XAxis
+                  dataKey="date"
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
                 />
-                <YAxis 
+                <YAxis
                   stroke="#212529"
                   strokeWidth={2}
                   tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#14B8A6" 
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#14B8A6"
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorDidReused)" 
+                  fillOpacity={1}
+                  fill="url(#colorDidReused)"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -395,42 +351,63 @@ export default function ExplorerPage() {
                   <tr className="bg-primary/5 border-b-2 border-primary/20">
                     <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">User Address</th>
                     <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID Type</th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">DID ID</th>
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">SBT ID</th>
                     <th className="text-left py-3 px-6 text-xs font-semibold text-charcoal-text/70 uppercase tracking-wider">Age</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary/10">
-                  {mockSbtClaims.slice(0, 4).map((claim) => (
-                    <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
-                            {formatAddress(claim.user_address)}
+                  {sbtClaims && sbtClaims.length > 0 ? (
+                    sbtClaims.slice(0, 4).map((claim) => (
+                      <tr key={claim.id} className="hover:bg-primary/5 transition-colors">
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-mono text-primary hover:text-primary-dark cursor-pointer font-semibold">
+                              {formatAddress(claim.user_address)}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(claim.user_address)}
+                              className="text-charcoal-text/40 hover:text-primary transition-colors"
+                              title="Copy address"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
+                            {claim.did_type}
                           </span>
-                          <button
-                            onClick={() => copyToClipboard(claim.user_address)}
-                            className="text-charcoal-text/40 hover:text-primary transition-colors"
-                            title="Copy address"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary border border-primary/30">
-                          {claim.did_type}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-sm text-charcoal-text font-medium">{claim.user_did_id}</span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="text-sm text-charcoal-text/70">{formatTimeAgo(claim.timestamp_ms)}</span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-mono text-charcoal-text font-medium">
+                              {formatAddress(claim.nft_id)}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(claim.nft_id)}
+                              className="text-charcoal-text/40 hover:text-primary transition-colors"
+                              title="Copy SBT ID"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-sm text-charcoal-text/70">{formatTimeAgo(claim.timestamp_ms)}</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-sm text-charcoal-text/60">
+                        {loading ? 'Loading...' : 'No SBT claims available yet'}
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
