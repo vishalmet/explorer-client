@@ -37,8 +37,9 @@ export async function fetchDIDEvents(
         ...(options.did_type && { did_type: options.did_type }),
     });
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
-    const response = await fetch(`${apiUrl}/api/events?${params}`);
+    // Route through the server-side proxy at /api/events so the API key
+    // is injected server-side and never reaches the browser.
+    const response = await fetch(`/api/events?${params}`);
 
     if (!response.ok) {
         throw new Error('Failed to fetch DID events');
